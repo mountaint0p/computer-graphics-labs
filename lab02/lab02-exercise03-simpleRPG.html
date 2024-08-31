@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Class 02 Mini Excercise 02</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			// Using class to represent RPG game
+			// TODO: Add the following to the class
+			// Enemy: if touched, player will lose and cannot move
+			// Coins: if touched, player score goes up (score will be printed with map)
+			// Walls: cannot be passed by player
+			// These all should be passed to the class via a array of (x, y) coordinates
+			class RPG {
+				constructor(worldX, worldY, playerX, playerY, goalX, goalY) {
+					this.worldX = worldX;
+					this.playerX = playerX;
+					this.worldY = worldY;
+					this.playerY = playerY;
+					this.goalX = goalX;
+					this.goalY = goalY;
+					// Status is [progress, lost, won]
+					this.status = "progress";
+
+					this.printWorld();
+					window.addEventListener("keydown", this.keyDownFunction(this));
+				}
+
+				printWorld() {
+					console.clear();
+					let worldStr = "";
+					for (let y = 1; y <= this.worldY; y++) {
+						for (let x = 1; x <= this.worldX; x++) {
+							if (y === this.playerY && x == this.playerX) {
+								worldStr += "8";
+							} else if (y === this.goalY && x == this.goalY) {
+								worldStr += "$";
+							} else {
+								worldStr += ",";
+							}
+						}
+						worldStr += "\n";
+					}
+					console.log(worldStr);
+				}
+
+				reachedGoal() {
+					if (this.playerX === this.goalX && this.playerY == this.goalY) {
+						this.status = "won";
+						console.log("you won!");
+					}
+				}
+
+				keyDownFunction(rpg_obj) {
+					// Using currying to allow event listener function to use RPG class object
+					function eventFunction(event) {
+						if (event.key === "ArrowDown" && rpg_obj.playerY < rpg_obj.worldY) {
+							rpg_obj.playerY += 1;
+							rpg_obj.printWorld();
+							rpg_obj.reachedGoal();
+						} else if (event.key === "ArrowUp" && rpg_obj.playerY > 0) {
+							rpg_obj.playerY -= 1;
+							rpg_obj.printWorld();
+							rpg_obj.reachedGoal();
+						} else if (
+							event.key === "ArrowRight" &&
+							rpg_obj.playerX < rpg_obj.worldX
+						) {
+							rpg_obj.playerX += 1;
+							rpg_obj.printWorld();
+							rpg_obj.reachedGoal();
+						} else if (event.key === "ArrowLeft" && rpg_obj.playerX > 0) {
+							rpg_obj.playerX -= 1;
+							rpg_obj.printWorld();
+							rpg_obj.reachedGoal();
+						}
+					}
+					return eventFunction;
+				}
+			}
+
+			let game = new RPG(10, 10, 6, 9, 1, 1);
+		</script>
+	</body>
+</html>

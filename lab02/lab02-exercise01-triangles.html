@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Class 02 Mini Excercise 02</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			"use strict";
+			function drawTriangle(n) {
+				let height = 1;
+				let triangle = "";
+				// Increasing up to n
+				while (height < n) {
+					for (let i = 0; i < height; i++) {
+						triangle += "*";
+					}
+					triangle += "\n";
+					height += 1;
+				}
+				// Decreasing starting at n
+				while (height > 0) {
+					for (let i = 0; i < height; i++) {
+						triangle += "*";
+					}
+					triangle += "\n";
+					height -= 1;
+				}
+				return triangle;
+			}
+			// Examples
+			console.log(drawTriangle(1));
+			console.log(drawTriangle(2));
+			console.log(drawTriangle(5));
+		</script>
+	</body>
+</html>
