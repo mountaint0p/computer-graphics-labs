@@ -13,38 +13,64 @@
 			// Walls: cannot be passed by player
 			// These all should be passed to the class via a array of (x, y) coordinates
 			class RPG {
-				constructor(worldWidth, worldHeight, playerStartX, playerStartY, goalX, goalY) {
+				constructor(worldWidth, worldHeight, playerStartX, playerStartY, goalX, goalY, obstacles = [], enemies = [], coins = []) {
+					/*
+					assume obstacles, enemies, and coins are n x 2 arrays
+					symbols:
+					8 -> player
+					$ -> goal
+					0 -> coin
+					x -> enemy
+					~ -> obstacle
+					*/
+					
 					// below line taken from <https://stackoverflow.com/q/16512182> and its answers
-					this.worldState = [...Array(worldWidth)].map(_ => Array(worldHeight).fill(","));
+					this.worldState = [...Array(worldHeight)].map(_ => Array(worldWidth).fill(","));
 					this.playerX = playerStartX;
 					this.playerY = playerStartY;
-					// IMPORTANT: we index with x first, then y
-					this.worldState[playerStartX][playerStartY] = "8";
-					this.worldState[goalX][goalY] = "$";
-					// Status is [progress, lost, won]
-					this.status = "progress";
-
+					// IMPORTANT: we index with y first, then x
+					this.worldState[playerStartY][playerStartX] = "8";
+					this.worldState[goalY][goalX] = "$";
+					
+					for (let i = 0; i < obstacles.length; i++) {
+						let ob = obstacles[i];
+						this.worldState[ob[1]][ob[0]] = "~";
+					}
+					for (let i = 0; i < coins.length; i++) {
+						let co = coins[i];
+						this.worldState[co[1]][co[0]] = "0";
+					}
+					for (let i = 0; i < enemies.length; i++) {
+						let en = enemies[i];
+						this.worldState[en[1]][en[0]] = "x";
+					}
+					this.playerCoins = 0;
+					
 					this.printWorld("Welcome!");
 					window.addEventListener("keydown", this.keyDownFunction(this));
 				}
 
-				printWorld(messageStr) {
+				printWorld(messageStr, end = false) {
+					let worldStr = "";
+					if (end) {
+						worldStr = messageStr + `\nFinal score: ${this.playerCoins}`;
+						// remove control, end game
+						window.removeEventListener("keydown", this.keyDownFunction(this));
+					} else {
+						worldStr = `Score: ${this.playerCoins}\n`;
+						worldStr += this.worldState.map(arr => arr.join("")).join("\n");
+						worldStr += "\n" + messageStr;
+					}
 					console.clear();
-					let worldStr = this.worldState.map(arr => arr.join("")).join("\n");
-					worldStr += "\n" + messageStr;
 					console.log(worldStr);
 				}
 				
-				/* reachedGoal() {
-					if (this.playerX === this.goalX && this.playerY === this.goalY) {
-						this.status = "won";
-						console.log("you won!");
-					}
-				} */
-
 				canMoveTo(x, y) {
-					// TODO: change with obstacles
-					return true;  // FIXME
+					let out_of_bounds = x < 0 || x >= this.worldState[0].length || y < 0 || y >= this.worldState.length;
+					if (out_of_bounds) {
+						return false;
+					}
+					return this.worldState[y][x] !== "~";
 				}
 				
 				keyDownFunction(rpg_obj) {
@@ -61,11 +87,12 @@
 						} else if (event.key === "ArrowLeft") {
 							targetX -= 1;
 						}
-						// TODO: implement canMoveTo
 						if (rpg_obj.canMoveTo(targetX, targetY)) {
+							// TODO handle intersection with coin, enemy, goal before overwriting
+							rpg_obj.worldState[rpg_obj.playerY][rpg_obj.playerX] = ","
 							rpg_obj.playerX = targetX;
 							rpg_obj.playerY = targetY;
-							// TODO: handle intersection with coin, enemy, goal
+							rpg_obj.worldState[rpg_obj.playerY][rpg_obj.playerX] = "8"
 							// for MVP just move & print
 							rpg_obj.printWorld("");
 						} else {
@@ -77,7 +104,7 @@
 				}
 			}
 
-			let game = new RPG(10, 10, 6, 9, 1, 1);
+			let game = new RPG(20, 10, 9, 6, 1, 1);
 		</script>
 	</body>
 </html>
