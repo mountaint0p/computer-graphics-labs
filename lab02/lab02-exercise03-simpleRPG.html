@@ -6,12 +6,6 @@
 	</head>
 	<body>
 		<script type="text/javascript">
-			// Using class to represent RPG game
-			// TODO: Add the following to the class
-			// Enemy: if touched, player will lose and cannot move
-			// Coins: if touched, player score goes up (score will be printed with map)
-			// Walls: cannot be passed by player
-			// These all should be passed to the class via a array of (x, y) coordinates
 			class RPG {
 				constructor(worldWidth, worldHeight, playerStartX, playerStartY, goalX, goalY, obstacles = [], enemies = [], coins = []) {
 					/*
@@ -50,6 +44,8 @@
 					window.addEventListener("keydown", this.keyDownFunction(this));
 				}
 
+				// If you pass end as true, it'll end the game and show messageStr (e.g. "You win!")
+				// otherwise this is our normal screen refreshing
 				printWorld(messageStr, end = false) {
 					let worldStr = "";
 					if (end) {
@@ -89,6 +85,10 @@
 						}
 						if (rpg_obj.canMoveTo(targetX, targetY)) {
 							// TODO handle intersection with coin, enemy, goal before overwriting
+							// (this is where we need to add more code to finish)
+							// coin -> increment playerCoins
+							// enemy -> printWorld with end=true and loss message
+							// goal -> same as above but win message
 							rpg_obj.worldState[rpg_obj.playerY][rpg_obj.playerX] = ","
 							rpg_obj.playerX = targetX;
 							rpg_obj.playerY = targetY;
