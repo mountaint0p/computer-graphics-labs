@@ -13,67 +13,64 @@
 			// Walls: cannot be passed by player
 			// These all should be passed to the class via a array of (x, y) coordinates
 			class RPG {
-				constructor(worldX, worldY, playerX, playerY, goalX, goalY) {
-					this.worldX = worldX;
-					this.playerX = playerX;
-					this.worldY = worldY;
-					this.playerY = playerY;
-					this.goalX = goalX;
-					this.goalY = goalY;
+				constructor(worldWidth, worldHeight, playerStartX, playerStartY, goalX, goalY) {
+					// below line taken from <https://stackoverflow.com/q/16512182> and its answers
+					this.worldState = [...Array(worldWidth)].map(_ => Array(worldHeight).fill(","));
+					this.playerX = playerStartX;
+					this.playerY = playerStartY;
+					// IMPORTANT: we index with x first, then y
+					this.worldState[playerStartX][playerStartY] = "8";
+					this.worldState[goalX][goalY] = "$";
 					// Status is [progress, lost, won]
 					this.status = "progress";
 
-					this.printWorld();
+					this.printWorld("Welcome!");
 					window.addEventListener("keydown", this.keyDownFunction(this));
 				}
 
-				printWorld() {
+				printWorld(messageStr) {
 					console.clear();
-					let worldStr = "";
-					for (let y = 1; y <= this.worldY; y++) {
-						for (let x = 1; x <= this.worldX; x++) {
-							if (y === this.playerY && x == this.playerX) {
-								worldStr += "8";
-							} else if (y === this.goalY && x == this.goalY) {
-								worldStr += "$";
-							} else {
-								worldStr += ",";
-							}
-						}
-						worldStr += "\n";
-					}
+					let worldStr = this.worldState.map(arr => arr.join("")).join("\n");
+					worldStr += "\n" + messageStr;
 					console.log(worldStr);
 				}
-
-				reachedGoal() {
-					if (this.playerX === this.goalX && this.playerY == this.goalY) {
+				
+				/* reachedGoal() {
+					if (this.playerX === this.goalX && this.playerY === this.goalY) {
 						this.status = "won";
 						console.log("you won!");
 					}
-				}
+				} */
 
+				canMoveTo(x, y) {
+					// TODO: change with obstacles
+					return true;  // FIXME
+				}
+				
 				keyDownFunction(rpg_obj) {
 					// Using currying to allow event listener function to use RPG class object
 					function eventFunction(event) {
-						if (event.key === "ArrowDown" && rpg_obj.playerY < rpg_obj.worldY) {
-							rpg_obj.playerY += 1;
-							rpg_obj.printWorld();
-							rpg_obj.reachedGoal();
-						} else if (event.key === "ArrowUp" && rpg_obj.playerY > 0) {
-							rpg_obj.playerY -= 1;
-							rpg_obj.printWorld();
-							rpg_obj.reachedGoal();
-						} else if (
-							event.key === "ArrowRight" &&
-							rpg_obj.playerX < rpg_obj.worldX
-						) {
-							rpg_obj.playerX += 1;
-							rpg_obj.printWorld();
-							rpg_obj.reachedGoal();
-						} else if (event.key === "ArrowLeft" && rpg_obj.playerX > 0) {
-							rpg_obj.playerX -= 1;
-							rpg_obj.printWorld();
-							rpg_obj.reachedGoal();
+						let targetX = rpg_obj.playerX;
+						let targetY = rpg_obj.playerY;
+						if (event.key === "ArrowDown") {
+							targetY += 1;
+						} else if (event.key === "ArrowUp") {
+							targetY -= 1;
+						} else if (event.key === "ArrowRight") {
+							targetX += 1;
+						} else if (event.key === "ArrowLeft") {
+							targetX -= 1;
+						}
+						// TODO: implement canMoveTo
+						if (rpg_obj.canMoveTo(targetX, targetY)) {
+							rpg_obj.playerX = targetX;
+							rpg_obj.playerY = targetY;
+							// TODO: handle intersection with coin, enemy, goal
+							// for MVP just move & print
+							rpg_obj.printWorld("");
+						} else {
+							// can't move there, so tell them & do nothing to the map
+							rpg_obj.printWorld("You can't move there!");
 						}
 					}
 					return eventFunction;
