@@ -99,27 +99,20 @@ class Playground {
 		function createCircle(n: BABYLON.int) {
 			let radius = 3;
 			let angle_incr = 2 * Math.PI / n;
-			let points = [[0,0,0]];
+			let positions = [0,0,0];
 			// generate n points
 			for (let i = 1; i <= n; i++) {
 				let x = Math.cos(angle_incr * i) * radius;
 				let y = Math.sin(angle_incr * i) * radius;
-				points.push([x, y, 0]);
+				positions = positions.concat([x, y, 0]);
 			}
-			console.log(points);
-			// using n points, create triangles
-			let positions: Array<BABYLON.int> = []
-			let indices = []
+			let indices: Array<BABYLON.int> = []
 			for (let i = 1; i <= n; i++) {
 				// for every triangle we want
 				// the origin (0, 0, 0)
 				// points[i]
 				// points[i+1]
-				let currPosition = [0,0,0]
-				currPosition = currPosition.concat(points[i])
-				currPosition = currPosition.concat(points[(i+1) % n])
-				positions = positions.concat(currPosition)
-				indices.push(i)
+				indices.concat([0, i, (i+1) % n])
 			}
 			console.log(positions);
 			let newCircle = new BABYLON.Mesh(`circleWith${n}Points`, scene);
@@ -130,7 +123,7 @@ class Playground {
 			return newCircle;
 		}
 
-		let c10 = createCircle(100);
+		let c10 = createCircle(20);
 
 		return scene;
 	}
