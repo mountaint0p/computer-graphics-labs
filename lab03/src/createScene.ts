@@ -1,4 +1,4 @@
-import * as BABYLON from '@babylonjs/core';
+import * as BABYLON from "@babylonjs/core";
 
 class Playground {
 	public static CreateScene(
@@ -10,7 +10,7 @@ class Playground {
 
 		// This creates and positions a free camera (non-mesh)
 		var camera = new BABYLON.FreeCamera(
-			'camera1',
+			"camera1",
 			new BABYLON.Vector3(0, 5, -10),
 			scene
 		);
@@ -24,7 +24,7 @@ class Playground {
 		// This creates a light, aiming 0,1,0 - to the sky (non-mesh)
 		// NOTE: seems like this is pointing up?
 		var light = new BABYLON.HemisphericLight(
-			'light1',
+			"light1",
 			new BABYLON.Vector3(0, 1, 0),
 			scene
 		);
@@ -98,22 +98,22 @@ class Playground {
 
 		function createCircle(n: BABYLON.int) {
 			let radius = 3;
-			let angle_incr = 2 * Math.PI / n;
-			let positions = [0,0,0];
+			let angle_incr = (2 * Math.PI) / n;
+			let positions = [0, 0, 0];
 			// generate n points
 			for (let i = 1; i <= n; i++) {
 				let x = Math.cos(angle_incr * i) * radius;
 				let y = Math.sin(angle_incr * i) * radius;
 				positions = positions.concat([x, y, 0]);
 			}
-			let indices: Array<BABYLON.int> = []
-			for (let i = 1; i <= n; i++) {
+			let indices: Array<BABYLON.int> = [];
+			for (let i = 1; i < n; i++) {
 				// for every triangle we want
-				// the origin (0, 0, 0)
-				// points[i]
-				// points[i+1]
-				indices.concat([0, i, (i+1) % n])
+				// point 0, points[i], points[i+1]
+				indices = indices.concat([0, i, i + 1]);
 			}
+			// last slice will use origin, point[n], and point[1]
+			indices = indices.concat([0, n, 1]);
 			console.log(positions);
 			let newCircle = new BABYLON.Mesh(`circleWith${n}Points`, scene);
 			let vertexData = new BABYLON.VertexData();
