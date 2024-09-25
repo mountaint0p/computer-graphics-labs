@@ -34,13 +34,13 @@ class Playground {
 		// Our built-in 'ground' shape. Params: name, options, scene
 		var ground1 = BABYLON.MeshBuilder.CreateGround(
 			"ground",
-			{ width: 3, height: 3 },
+			{ width: 3, height: 3, subdivisions: 20 },
 			scene
 		);
 
 		var ground2 = BABYLON.MeshBuilder.CreateGround(
 			"ground",
-			{ width: 3, height: 3 },
+			{ width: 3, height: 3, subdivisions: 20 },
 			scene
 		);
 
@@ -49,9 +49,19 @@ class Playground {
 		var vertex_shader = `
         attribute vec3 position;
         uniform mat4 worldViewProjection;
+
+		varying vec3 v_position;
+
+		uniform float time;
         
         void main() {
             vec4 p = vec4(position, 1.);
+			p.y += sin(position.x * 4.0 + (2.0 * time));
+			p.x += sin(2.0 * time);
+			v_position = position;
+			v_position.y += sin(position.x * 4.0);
+			v_position.xyz *= 0.5;
+			v_position.x = 0.5;
             gl_Position = worldViewProjection * p;
         }
     `;
@@ -59,8 +69,10 @@ class Playground {
 		var fragment_shader = `
         uniform vec3 color;
 
+		varying vec3 v_position;
+
         void main() {
-            gl_FragColor = vec4(color, 1);
+            gl_FragColor = vec4(color+v_position, 1);
         }
     `;
 
@@ -75,7 +87,7 @@ class Playground {
 			{
 				// assign shader inputs
 				attributes: ["position"], // position is BabylonJS build-in
-				uniforms: ["worldViewProjection", "color"], // worldViewProjection is BabylonJS build-in
+				uniforms: ["worldViewProjection", "color", "time"], // worldViewProjection is BabylonJS build-in
 			}
 		);
 
@@ -84,9 +96,18 @@ class Playground {
 		var ground2Color = BABYLON.Vector3.FromArray([0, 0, 1]);
 		shaderMaterial1.setVector3("color", ground1Color);
 		shaderMaterial2.setVector3("color", ground2Color);
+		shaderMaterial1.backFaceCulling = false;
+		shaderMaterial2.backFaceCulling = false;
 
 		ground1.material = shaderMaterial1;
 		ground2.material = shaderMaterial2;
+
+		function update() {
+			// set current time in seconds
+			shaderMaterial1.setFloat("time", performance.now() / 1000);
+			shaderMaterial2.setFloat("time", performance.now() / 1000);
+		}
+		scene.registerBeforeRender(update);
 
 		return scene;
 	}
