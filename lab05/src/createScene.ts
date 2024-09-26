@@ -5,48 +5,84 @@ class Playground {
     engine: BABYLON.Engine,
     canvas: HTMLCanvasElement
   ): BABYLON.Scene {
-    // This creates a basic Babylon Scene object (non-mesh)
+    function makeTranslationMatrix(x, y, z){
+      var translationMatrix = [
+        1, 0, 0, 0 ,   // <- i
+        0, 1, 0, 0 ,   // <- j
+        0, 0, 1, 0 ,   // <- k
+        x, y, z, 1 ,   // <- t
+      ];
+      return translationMatrix;
+    };
+
     var scene = new BABYLON.Scene(engine);
 
-    // This creates and positions a free camera (non-mesh)
-    var camera = new BABYLON.FreeCamera(
-      'camera1',
-      new BABYLON.Vector3(0, 5, -10),
-      scene
-    );
-
-    // This targets the camera to scene origin
-    camera.setTarget(BABYLON.Vector3.Zero());
-
-    // This attaches the camera to the canvas
+    // make a ArcRotateCamera, often a little easier to navigate the scene with this. It rotates around the cameraTarget.
+    const horizontalAngle = -Math.PI/2;   // initial horizontal camera angle
+    const verticalAngle = Math.PI/2;      // initial vertical camera angle
+    const distance = 20;                  // initial camera distance
+    const cameraTarget = new BABYLON.Vector3.Zero;
+    const camera = new BABYLON.ArcRotateCamera("camera", horizontalAngle, verticalAngle, distance, cameraTarget, scene);
     camera.attachControl(canvas, true);
 
-    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-    var light = new BABYLON.HemisphericLight(
-      'light1',
-      new BABYLON.Vector3(0, 1, 0),
-      scene
-    );
-
-    // Default intensity is 1. Let's dim the light a small amount
+    // light source only for ground (our shader does not process light)
+    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
     light.intensity = 0.7;
 
-    // Our built-in 'sphere' shape. Params: name, options, scene
-    var sphere = BABYLON.MeshBuilder.CreateSphere(
-      'sphere',
-      { diameter: 2, segments: 32 },
-      scene
-    );
+    const box = BABYLON.MeshBuilder.CreateBox("box", {size:5}, scene);
+    // ground for spacial reference
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width:10, height:10}, scene);
 
-    // Move the sphere upward 1/2 its height
-    sphere.position.y = 1;
+    const vertex_shader = `
+        attribute vec3 position;
+        uniform mat4 myWorld;
+        uniform mat4 world;
+        uniform mat4 view;
+        uniform mat4 projection;
+                
+        void main() {
+            vec4 localPosition = vec4(position, 1.);
+            vec4 worldPosition = myWorld * localPosition;     
+            vec4 viewPosition  = view * worldPosition;
+            vec4 clipPosition  = projection * viewPosition;
+            gl_Position = clipPosition;
+        }
+    `;
 
-    // Our built-in 'ground' shape. Params: name, options, scene
-    var ground = BABYLON.MeshBuilder.CreateGround(
-      'ground',
-      { width: 6, height: 6 },
-      scene
-    );
+    const fragment_shader = `
+        uniform vec3 color;
+        // simply assign solid color
+        void main() {
+            gl_FragColor = vec4(color,1);
+        }
+    `;
+
+    // make custom ShaderMaterial for your shader code
+    const boxMaterial = new BABYLON.ShaderMaterial('myMaterial', scene, { 
+        vertexSource: vertex_shader, 
+        fragmentSource: fragment_shader
+    },{
+        attributes: ["position"], // position is BabylonJS build-in
+        uniforms: ["myWorld", "world", "view", "projection", "color"], // view, projection are BabylonJS build-in
+    });
+
+    box.material = boxMaterial;
+  
+    // assign color uniform
+    const boxColor = BABYLON.Vector3.FromArray([0,1,0]) // green
+    boxMaterial.setVector3("color", boxColor); 
+
+    // assign custom myWorld uniform 
+    const boxTranslationMatrixArray = (makeTranslationMatrix(0,3,0));
+    const boxTranslationMatrix = BABYLON.Matrix.FromArray(boxTranslationMatrixArray);
+    const boxWorldMatrix = boxTranslationMatrix;
+    boxMaterial.setMatrix("myWorld", boxWorldMatrix);
+
+    function update() {
+        // get current time in seconds
+        const time = performance.now()/1000;
+    }
+    scene.registerBeforeRender(update);
 
     return scene;
   }
