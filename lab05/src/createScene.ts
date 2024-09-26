@@ -5,7 +5,7 @@ class Playground {
     engine: BABYLON.Engine,
     canvas: HTMLCanvasElement
   ): BABYLON.Scene {
-    var scene = new BABYLON.Scene(engine);
+    const scene = new BABYLON.Scene(engine);
 
     // make a ArcRotateCamera, often a little easier to navigate the scene with this. It rotates around the cameraTarget.
     const horizontalAngle = -Math.PI/2;   // initial horizontal camera angle
@@ -59,16 +59,20 @@ class Playground {
     box.material = boxMaterial;
   
     // assign color uniform
-    const boxColor = BABYLON.Vector3.FromArray([0,1,0]) // green
+    const boxColor = BABYLON.Vector3.FromArray([0,1,0]) // green!
     boxMaterial.setVector3("color", boxColor); 
 
     // assign custom myWorld uniform 
-    const boxScalingMatrix = makeScalingMatrix(1.5, 1, 2);
+    const boxScalingMatrix = makeScalingMatrix(1.5, 1, 1.25);
     const boxTranslationMatrix = makeTranslationMatrix(0, 4, 1);
-    const boxXRotationMatrix = makeXRotationMatrix(Math.PI / 4);
+    const boxXRotationMatrix = makeXRotationMatrix(Math.PI / 3);
     const boxYRotationMatrix = makeYRotationMatrix(Math.PI / 4);
-    const boxZRotationMatrix = makeZRotationMatrix(Math.PI / 4);
-    const boxWorldMatrix = boxScalingMatrix.multiply(boxZRotationMatrix).multiply(boxTranslationMatrix);
+    const boxZRotationMatrix = makeZRotationMatrix(Math.PI / 5);
+    const boxWorldMatrix = boxScalingMatrix
+                          .multiply(boxZRotationMatrix)
+                          .multiply(boxXRotationMatrix)
+                          .multiply(boxYRotationMatrix)
+                          .multiply(boxTranslationMatrix);
     boxMaterial.setMatrix("myWorld", boxWorldMatrix);
 
     function update() {
@@ -81,14 +85,13 @@ class Playground {
   }
 }
 
-function makeTranslationMatrix(x, y, z){
-  var translationMatrix = [
+function makeTranslationMatrix(x, y, z) {
+  return BABYLON.Matrix.FromArray([
     1, 0, 0, 0 ,   // <- i
     0, 1, 0, 0 ,   // <- j
     0, 0, 1, 0 ,   // <- k
     x, y, z, 1 ,   // <- t
-  ];
-  return BABYLON.Matrix.FromArray(translationMatrix);
+  ]);
 };
 
 function makeScalingMatrix(x, y, z) {
