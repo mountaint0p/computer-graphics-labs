@@ -5,23 +5,13 @@ class Playground {
     engine: BABYLON.Engine,
     canvas: HTMLCanvasElement
   ): BABYLON.Scene {
-    function makeTranslationMatrix(x, y, z){
-      var translationMatrix = [
-        1, 0, 0, 0 ,   // <- i
-        0, 1, 0, 0 ,   // <- j
-        0, 0, 1, 0 ,   // <- k
-        x, y, z, 1 ,   // <- t
-      ];
-      return translationMatrix;
-    };
-
     var scene = new BABYLON.Scene(engine);
 
     // make a ArcRotateCamera, often a little easier to navigate the scene with this. It rotates around the cameraTarget.
     const horizontalAngle = -Math.PI/2;   // initial horizontal camera angle
     const verticalAngle = Math.PI/2;      // initial vertical camera angle
     const distance = 20;                  // initial camera distance
-    const cameraTarget = new BABYLON.Vector3.Zero;
+    const cameraTarget = BABYLON.Vector3.Zero();
     const camera = new BABYLON.ArcRotateCamera("camera", horizontalAngle, verticalAngle, distance, cameraTarget, scene);
     camera.attachControl(canvas, true);
 
@@ -73,9 +63,12 @@ class Playground {
     boxMaterial.setVector3("color", boxColor); 
 
     // assign custom myWorld uniform 
-    const boxTranslationMatrixArray = (makeTranslationMatrix(0,3,0));
-    const boxTranslationMatrix = BABYLON.Matrix.FromArray(boxTranslationMatrixArray);
-    const boxWorldMatrix = boxTranslationMatrix;
+    const boxScalingMatrix = makeScalingMatrix(1.5, 1, 2);
+    const boxTranslationMatrix = makeTranslationMatrix(0, 4, 1);
+    const boxXRotationMatrix = makeXRotationMatrix(Math.PI / 4);
+    const boxYRotationMatrix = makeYRotationMatrix(Math.PI / 4);
+    const boxZRotationMatrix = makeZRotationMatrix(Math.PI / 4);
+    const boxWorldMatrix = boxScalingMatrix.multiply(boxZRotationMatrix).multiply(boxTranslationMatrix);
     boxMaterial.setMatrix("myWorld", boxWorldMatrix);
 
     function update() {
@@ -87,5 +80,51 @@ class Playground {
     return scene;
   }
 }
+
+function makeTranslationMatrix(x, y, z){
+  var translationMatrix = [
+    1, 0, 0, 0 ,   // <- i
+    0, 1, 0, 0 ,   // <- j
+    0, 0, 1, 0 ,   // <- k
+    x, y, z, 1 ,   // <- t
+  ];
+  return BABYLON.Matrix.FromArray(translationMatrix);
+};
+
+function makeScalingMatrix(x, y, z) {
+  return BABYLON.Matrix.FromArray([
+    x, 0, 0, 0,
+    0, y, 0, 0,
+    0, 0, z, 0,
+    0, 0, 0, 1
+  ])
+};
+
+function makeXRotationMatrix(angle) {
+  return BABYLON.Matrix.FromArray([
+    1, 0, 0, 0,
+    0, Math.cos(angle), -Math.sin(angle), 0,
+    0, Math.sin(angle), Math.cos(angle), 0,
+    0, 0, 0, 1
+  ])
+};
+
+function makeYRotationMatrix(angle) {
+  return BABYLON.Matrix.FromArray([
+    Math.cos(angle), 0, Math.sin(angle), 0,
+    0, 1, 0, 0,
+    -Math.sin(angle), 0, Math.cos(angle), 0,
+    0, 0, 0, 1
+  ])
+};
+
+function makeZRotationMatrix(angle) {
+  return BABYLON.Matrix.FromArray([
+    Math.cos(angle), -Math.sin(angle), 0, 0,
+    Math.sin(angle), Math.cos(angle), 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+  ])
+};
 
 export { Playground };
