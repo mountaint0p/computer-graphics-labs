@@ -20,8 +20,8 @@ class Playground {
     light.intensity = 0.7;
 
     const box = BABYLON.MeshBuilder.CreateBox("box", {size:5}, scene);
-    // ground for spacial reference
-    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width:10, height:10}, scene);
+    // create ground
+    BABYLON.MeshBuilder.CreateGround("ground", {width:10, height:10}, scene);
 
     const vertex_shader = `
         attribute vec3 position;
@@ -85,7 +85,7 @@ class Playground {
   }
 }
 
-function makeTranslationMatrix(x, y, z) {
+function makeTranslationMatrix(x: number, y: number, z: number) {
   return BABYLON.Matrix.FromArray([
     1, 0, 0, 0 ,   // <- i
     0, 1, 0, 0 ,   // <- j
@@ -94,7 +94,7 @@ function makeTranslationMatrix(x, y, z) {
   ]);
 };
 
-function makeScalingMatrix(x, y, z) {
+function makeScalingMatrix(x: number, y: number, z: number) {
   return BABYLON.Matrix.FromArray([
     x, 0, 0, 0,
     0, y, 0, 0,
@@ -103,7 +103,7 @@ function makeScalingMatrix(x, y, z) {
   ])
 };
 
-function makeXRotationMatrix(angle) {
+function makeXRotationMatrix(angle: number) {
   return BABYLON.Matrix.FromArray([
     1, 0, 0, 0,
     0, Math.cos(angle), -Math.sin(angle), 0,
@@ -112,7 +112,7 @@ function makeXRotationMatrix(angle) {
   ])
 };
 
-function makeYRotationMatrix(angle) {
+function makeYRotationMatrix(angle: number) {
   return BABYLON.Matrix.FromArray([
     Math.cos(angle), 0, Math.sin(angle), 0,
     0, 1, 0, 0,
@@ -121,7 +121,7 @@ function makeYRotationMatrix(angle) {
   ])
 };
 
-function makeZRotationMatrix(angle) {
+function makeZRotationMatrix(angle: number) {
   return BABYLON.Matrix.FromArray([
     Math.cos(angle), -Math.sin(angle), 0, 0,
     Math.sin(angle), Math.cos(angle), 0, 0,
