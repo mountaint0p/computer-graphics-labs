@@ -70,35 +70,49 @@ class Playground {
     const boxZRotationMatrix = makeZRotationMatrix(Math.PI / 5);
     // TODO: make cleaner multiply function,
     // modify other values with time
-    const boxWorldMatrix = boxScalingMatrix
-                          .multiply(boxZRotationMatrix)
-                          .multiply(boxXRotationMatrix)
-                          .multiply(boxYRotationMatrix)
-                          .multiply(boxTranslationMatrix);
-    boxMaterial.setMatrix("myWorld", boxScalingMatrix
-                          .multiply(boxZRotationMatrix)
-                          .multiply(boxXRotationMatrix)
-                          .multiply(boxYRotationMatrix)
-                          .multiply(boxTranslationMatrix));
+    boxMaterial.setMatrix("myWorld", matMult([
+      boxScalingMatrix,
+      boxZRotationMatrix,
+      boxXRotationMatrix,
+      boxYRotationMatrix,
+      boxTranslationMatrix,
+    ]));
 
     function update() {
         const time = performance.now() / 1000;
-        const scalingAdded = BABYLON.Matrix.FromArray([
-          Math.sin(time), 0, 0, 0,
-          0, Math.cos(2*time), 0, 0,
+        const zAdded = BABYLON.Matrix.FromArray([
+          // goofy fun stuff
+          Math.tan(time / 5), Math.tan(time / 5), 0, 0,
+          Math.tan(time / 5), Math.tan(time / 5), 0, 0,
           0, 0, 0, 0,
-          0, 0, 0, 0,
+          0, 0, 0, 0
         ]);
-        boxMaterial.setMatrix("myWorld", (boxScalingMatrix.add(scalingAdded))
-                          .multiply(boxZRotationMatrix)
-                          .multiply(boxXRotationMatrix)
-                          .multiply(boxYRotationMatrix)
-                          .multiply(boxTranslationMatrix));
+        const trans = BABYLON.Matrix.FromArray([
+          0, 0, 0, 0,
+          0, 0, 0, 0,
+          0, 0, 0, 0,
+          Math.sin(time)*4, Math.cos(time)*5, Math.sin(time/2), 0,
+        ]);
+        boxMaterial.setMatrix("myWorld", matMult([
+          boxScalingMatrix,
+          boxZRotationMatrix.add(zAdded),
+          boxXRotationMatrix,
+          boxYRotationMatrix,
+          boxTranslationMatrix.add(trans),
+        ]));
     }
     scene.registerBeforeRender(update);
 
     return scene;
   }
+}
+
+// multiplies matrices in array from left to right
+// IMPORTANT: order is reversed from normal math notation
+function matMult(arrs: Array<BABYLON.Matrix>) {
+  // .reduce multiplies the accumulated value (start w/ id matrix)
+  // with the next thing in the array, over and over until the end
+  return arrs.reduce((acc, curr) => acc.multiply(curr), BABYLON.Matrix.Identity());
 }
 
 function makeTranslationMatrix(x: number, y: number, z: number) {
