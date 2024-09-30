@@ -68,16 +68,32 @@ class Playground {
     const boxXRotationMatrix = makeXRotationMatrix(Math.PI / 3);
     const boxYRotationMatrix = makeYRotationMatrix(Math.PI / 4);
     const boxZRotationMatrix = makeZRotationMatrix(Math.PI / 5);
+    // TODO: make cleaner multiply function,
+    // modify other values with time
     const boxWorldMatrix = boxScalingMatrix
                           .multiply(boxZRotationMatrix)
                           .multiply(boxXRotationMatrix)
                           .multiply(boxYRotationMatrix)
                           .multiply(boxTranslationMatrix);
-    boxMaterial.setMatrix("myWorld", boxWorldMatrix);
+    boxMaterial.setMatrix("myWorld", boxScalingMatrix
+                          .multiply(boxZRotationMatrix)
+                          .multiply(boxXRotationMatrix)
+                          .multiply(boxYRotationMatrix)
+                          .multiply(boxTranslationMatrix));
 
     function update() {
-        // get current time in seconds
-        const time = performance.now()/1000;
+        const time = performance.now() / 1000;
+        const scalingAdded = BABYLON.Matrix.FromArray([
+          Math.sin(time), 0, 0, 0,
+          0, Math.cos(2*time), 0, 0,
+          0, 0, 0, 0,
+          0, 0, 0, 0,
+        ]);
+        boxMaterial.setMatrix("myWorld", (boxScalingMatrix.add(scalingAdded))
+                          .multiply(boxZRotationMatrix)
+                          .multiply(boxXRotationMatrix)
+                          .multiply(boxYRotationMatrix)
+                          .multiply(boxTranslationMatrix));
     }
     scene.registerBeforeRender(update);
 
