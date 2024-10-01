@@ -84,8 +84,8 @@ class Playground {
         // goofy fun stuff
         Math.tan(time / 5), Math.tan(time / 5), 0, 0,
         Math.tan(time / 5), Math.tan(time / 5), 0, 0,
-        0,                0,                0, 0,
-        0,                0,                0, 0,
+        0,                  0,                  0, 0,
+        0,                  0,                  0, 0,
       ]);
       const trans = BABYLON.Matrix.FromArray([
         0,                  0,                  0,                  0,
