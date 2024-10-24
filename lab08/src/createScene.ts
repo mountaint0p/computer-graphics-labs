@@ -5,49 +5,78 @@ class Playground {
     engine: BABYLON.Engine,
     canvas: HTMLCanvasElement
   ): BABYLON.Scene {
-    // This creates a basic Babylon Scene object (non-mesh)
-    var scene = new BABYLON.Scene(engine);
-
-    // This creates and positions a free camera (non-mesh)
-    var camera = new BABYLON.FreeCamera(
-      'camera1',
-      new BABYLON.Vector3(0, 5, -10),
-      scene
-    );
-
-    // This targets the camera to scene origin
-    camera.setTarget(BABYLON.Vector3.Zero());
-
-    // This attaches the camera to the canvas
+    // Scene, Camera and Light setup
+    const scene = new BABYLON.Scene(engine);
+	  const camera = new BABYLON.ArcRotateCamera("Camera", -Math.PI/2, 1, 10, new BABYLON.Vector3(0, 0, 0), scene);
     camera.attachControl(canvas, true);
 
-    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-    var light = new BABYLON.HemisphericLight(
-      'light1',
-      new BABYLON.Vector3(0, 1, 0),
-      scene
-    );
+    // --------------- LOADING OF TEXTURES -----------------------
+    // From babylon Texture Library https://doc.babylonjs.com/toolsAndResources/assetLibraries/availableTextures
+    const texture = new BABYLON.Texture(
+			"https://www.babylonjs-playground.com/textures/Logo.png"
+		);
 
-    // Default intensity is 1. Let's dim the light a small amount
-    light.intensity = 0.7;
+    // 'ground' mesh for reference.
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 6, height: 6}, scene);
+    ground.material = new BABYLON.StandardMaterial("ground material", scene);
+    // use emissive color property to exclude lighting (usually would be diffuseColor)
+    ground.material.emissiveColor = BABYLON.Color3.Gray(); 
 
-    // Our built-in 'sphere' shape. Params: name, options, scene
-    var sphere = BABYLON.MeshBuilder.CreateSphere(
-      'sphere',
-      { diameter: 2, segments: 32 },
-      scene
-    );
+    // box mesh for use with our shader
+    const box = BABYLON.MeshBuilder.CreateBox("box", {size: 2});
+    box.position.y = 1;
+    box.position.x = 1.5;
+    
+    // box mesh to see how BabylonJS renders ligh
+    const controlbox = BABYLON.MeshBuilder.CreateBox("control box", {size: 2}); 
+    controlbox.position.y = 1;
+    controlbox.position.x = -1.5;
+    controlbox.material = new BABYLON.StandardMaterial("control material", scene);
+    controlbox.material.disableLighting = true;
 
-    // Move the sphere upward 1/2 its height
-    sphere.position.y = 1;
+    // use emissive texture property to exclude lighting (usually would be diffuseTexture)
+    controlbox.material.emissiveTexture = texture; 
 
-    // Our built-in 'ground' shape. Params: name, options, scene
-    var ground = BABYLON.MeshBuilder.CreateGround(
-      'ground',
-      { width: 6, height: 6 },
-      scene
-    );
+    // ` ` these quatioan marks allow a multi-line string in Javascript (" " or ' ' is single line)
+    var vertex_shader = `
+        attribute vec3 position;
 
+        uniform mat4 world;
+        uniform mat4 view;
+        uniform mat4 projection;
+        uniform mat3 inverseTranspose;
+               
+        void main() {
+            vec4 localPosition = vec4(position, 1.);
+            vec4 worldPosition = world * localPosition;     
+            vec4 viewPosition  = view * worldPosition;
+            vec4 clipPosition  = projection * viewPosition;
+
+            gl_Position = clipPosition;
+        }
+    `;
+
+    var fragment_shader = `
+
+        void main() {
+             // implement basic texturing
+            gl_FragColor = vec4(1,0,0,1);
+        }
+    `;
+
+    var shaderMaterial = new BABYLON.ShaderMaterial('myMaterial', scene, { 
+        // assign source code for vertex and fragment shader (string)
+        vertexSource: vertex_shader, 
+        fragmentSource: fragment_shader
+    },
+    {
+        // assign shader inputs
+        attributes: ["position"], // position and uv are BabylonJS build-in
+        uniforms: ["world", "view", "projection"] // world, view, projection are BabylonJS build-in
+    });
+    
+    box.material = shaderMaterial;
+    
     return scene;
   }
 }
