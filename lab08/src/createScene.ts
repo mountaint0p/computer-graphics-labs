@@ -37,9 +37,17 @@ class Playground {
     // use emissive texture property to exclude lighting (usually would be diffuseTexture)
     controlbox.material.emissiveTexture = texture; 
 
+    function createPyramid(){
+      // const positions = [
+      //   [0, 0],
+      // ]
+    }
+
     // ` ` these quatioan marks allow a multi-line string in Javascript (" " or ' ' is single line)
     var vertex_shader = `
         attribute vec3 position;
+        attribute vec2 uv;
+        varying vec2 vUV;
 
         uniform mat4 world;
         uniform mat4 view;
@@ -51,6 +59,8 @@ class Playground {
             vec4 worldPosition = world * localPosition;     
             vec4 viewPosition  = view * worldPosition;
             vec4 clipPosition  = projection * viewPosition;
+            
+            vUV = uv;
 
             gl_Position = clipPosition;
         }
@@ -58,9 +68,13 @@ class Playground {
 
     var fragment_shader = `
 
+        varying vec2 vUV;
+        uniform sampler2D mainTexture;
+
         void main() {
-             // implement basic texturing
-            gl_FragColor = vec4(1,0,0,1);
+            // implement basic texturing
+            vec4 color = texture(mainTexture, vUV);
+            gl_FragColor = color;
         }
     `;
 
@@ -71,10 +85,12 @@ class Playground {
     },
     {
         // assign shader inputs
-        attributes: ["position"], // position and uv are BabylonJS build-in
-        uniforms: ["world", "view", "projection"] // world, view, projection are BabylonJS build-in
+        attributes: ["position", "uv"], // position and uv are BabylonJS build-in
+        uniforms: ["world", "view", "projection"], // world, view, projection are BabylonJS build-in
+        samplers: ["mainTexture"]
     });
     
+    shaderMaterial.setTexture("mainTexture", texture);
     box.material = shaderMaterial;
     
     return scene;
