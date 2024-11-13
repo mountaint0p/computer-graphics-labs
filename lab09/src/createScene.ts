@@ -17,28 +17,42 @@ class Playground {
 		sphere.position.y = 1;
 
 		var vertex_shader = `
-				attribute vec3 position;
+			attribute vec3 position;
+			attribute vec3 normal;
 
-				uniform mat4 world;
-				uniform mat4 view;
-				uniform mat4 projection;
+			uniform mat4 world;
+			uniform mat4 view;
+			uniform mat4 projection;
 
-				void main() {
-						vec4 localPosition = vec4(position, 1.);
-						vec4 worldPosition = world * localPosition;
-						vec4 viewPosition	= view * worldPosition;
-						vec4 clipPosition	= projection * viewPosition;
+			varying vec3 worldNormal;
+			varying vec3 vWorldPos;
 
-						gl_Position = clipPosition;
-				}
+			void main() {
+				vec4 localPosition = vec4(position, 1.);
+				vec4 worldPosition = world * localPosition;
+				vec4 viewPosition	= view * worldPosition;
+				vec4 clipPosition	= projection * viewPosition;
+
+				worldNormal = mat3(world) * normal;
+				vWorldPos = worldPosition.xyz;
+
+				gl_Position = clipPosition;
+			}
 		`;
 
 		var fragment_shader = `
+			uniform samplerCube reflectionTexture;
+			uniform vec3 viewPos;
 
-				void main() {
-						vec3 color = vec3(1,1,1);
-						gl_FragColor = vec4(color,1);
-				}
+			varying vec3 worldNormal;
+			varying vec3 vWorldPos;
+
+			void main() {
+				vec3 viewDirection = normalize(vWorldPos - viewPos);
+				vec3 reflectionDir = reflect(viewDirection, worldNormal);
+				vec3 reflectionColor = textureCube(reflectionTexture, reflectionDir).rgb;
+				gl_FragColor = vec4(reflectionColor,1);
+			}
 		`;
 
 		var shaderMaterial = new BABYLON.ShaderMaterial('myMaterial', scene, {
@@ -46,11 +60,14 @@ class Playground {
 			fragmentSource: fragment_shader
 		},
 			{
-				attributes: ["position"],
-				uniforms: ["world", "view", "projection"]
+				attributes: ["position", "normal"],
+				uniforms: ["world", "view", "projection", "viewPos"],
+				samplers: ["reflectionTexture"]
 			});
 
 		sphere.material = shaderMaterial;
+		shaderMaterial.setVector3("viewPos", camera.position);
+		shaderMaterial.setTexture("reflectionTexture", reflectionTexture)
 
 		return scene;
 	}
