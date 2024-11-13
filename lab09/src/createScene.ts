@@ -11,7 +11,7 @@ class Playground {
 		camera.attachControl(canvas, true);
 
 		var reflectionTexture = new BABYLON.CubeTexture("../textures/skybox2", scene);
-		
+
 		// sphere mesh for use with our shader
 		var sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 1 }, scene);
 		sphere.position.y = 1;
@@ -83,11 +83,9 @@ class Playground {
 				mat4 skyboxView = view;
 
 				// remove translation data from view matrix
-				skyboxView[3].x = 0.0;
-				skyboxView[3].y = 0.0;
-				skyboxView[3].z = 0.0;
-				vec4 viewPosition  = skyboxView * localPosition;
-				vec4 clipPosition  = projection * viewPosition;
+				skyboxView[3].xyz = vec3(0.0, 0.0, 0.0);
+				vec4 viewPosition = skyboxView * localPosition;
+				vec4 clipPosition = projection * viewPosition;
 
 				clipPosition.z = clipPosition.w; // make sure depth is maxed out
 
@@ -108,21 +106,21 @@ class Playground {
 			}
 		`;
 
-		var skyboxShaderMaterial = new BABYLON.ShaderMaterial('skyboxMaterial', scene, { 
-			vertexSource: skybox_vertex_shader, 
+		var skyboxShaderMaterial = new BABYLON.ShaderMaterial('skyboxMaterial', scene, {
+			vertexSource: skybox_vertex_shader,
 			fragmentSource: skybox_fragment_shader
 		},
-		{
-			attributes: ["position"], 
-			uniforms: ["world","view", "projection"], 
-			samplers: ["skyboxTexture"] 
-		});
+			{
+				attributes: ["position"],
+				uniforms: ["world", "view", "projection"],
+				samplers: ["skyboxTexture"]
+			});
 
 		skyboxShaderMaterial.setTexture("skyboxTexture", reflectionTexture);
 		skyboxShaderMaterial.disableDepthWrite = true;
 
 		// Make an inside out cube
-		var skybox = BABYLON.MeshBuilder.CreateBox("box", {size: 4, sideOrientation: BABYLON.Mesh.BACKSIDE}, scene);
+		var skybox = BABYLON.MeshBuilder.CreateBox("box", { size: 4, sideOrientation: BABYLON.Mesh.BACKSIDE }, scene);
 		skybox.material = skyboxShaderMaterial;
 		return scene;
 	}
